@@ -115,16 +115,21 @@ def setup_oasis_logging(log_dir: str):
         logger.propagate = False
 
 
+print("MIROFISH_REDDIT_BOOT: before camel imports", flush=True)
 try:
     from camel.models import ModelFactory
+    print("MIROFISH_REDDIT_BOOT: camel.models imported", flush=True)
     from camel.types import ModelPlatformType
+    print("MIROFISH_REDDIT_BOOT: camel.types imported", flush=True)
     import oasis
+    print("MIROFISH_REDDIT_BOOT: oasis imported", flush=True)
     from oasis import (
         ActionType,
         LLMAction,
         ManualAction,
         generate_reddit_agent_graph
     )
+    print("MIROFISH_REDDIT_BOOT: oasis symbols imported", flush=True)
 except ImportError as e:
     print(f"错误: 缺少依赖 {e}")
     print("请先安装: pip install oasis-ai camel-ai")
