@@ -2142,6 +2142,53 @@ def get_agent_stats(simulation_id: str):
         }), 500
 
 
+
+
+@simulation_bp.route('/<simulation_id>/debug-log', methods=['GET'])
+def get_simulation_debug_log(simulation_id: str):
+    """Return the tail of the simulation subprocess log for debugging."""
+    try:
+        limit = request.args.get('limit', 20000, type=int)
+        limit = max(1000, min(limit, 100000))
+        sim_dir = os.path.join(
+            os.path.dirname(__file__),
+            f'../../uploads/simulations/{simulation_id}'
+        )
+        log_path = os.path.join(sim_dir, 'simulation.log')
+        env_status_path = os.path.join(sim_dir, 'env_status.json')
+
+        log_text = ''
+        if os.path.exists(log_path):
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as fh:
+                log_text = fh.read()
+            if len(log_text) > limit:
+                log_text = log_text[-limit:]
+
+        env_status = None
+        if os.path.exists(env_status_path):
+            try:
+                with open(env_status_path, 'r', encoding='utf-8') as fh:
+                    env_status = json.load(fh)
+            except Exception:
+                env_status = None
+
+        return jsonify({
+            'success': True,
+            'data': {
+                'simulation_id': simulation_id,
+                'log_exists': os.path.exists(log_path),
+                'log_tail': log_text,
+                'env_status': env_status,
+            }
+        })
+    except Exception as e:
+        logger.error(f'读取模拟调试日志失败: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
 # ============== 数据库查询接口 ==============
 
 @simulation_bp.route('/<simulation_id>/posts', methods=['GET'])
